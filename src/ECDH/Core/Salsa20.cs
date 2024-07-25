@@ -8,16 +8,16 @@ namespace Cryptonite.ECDH.Core
 {
     internal static class Salsa20
     {
-        internal static Span<byte> HSalsa20(Span<byte> key)
+        internal static byte[] HSalsa20(ReadOnlySpan<byte> key)
         {
-            Span<byte> result = new Span<byte>(new byte[32]);
+            Span<byte> result = stackalloc byte[32];
             key.CopyTo(result);
 
             var state = LoadLittleEndian(result);
             SalsaCore.Salsa20(ref state, 10);
             StoreLittleEndian(result, ref state);
 
-            return result;
+            return result.ToArray();
         }
 
         private const uint SalsaConst0 = 0x61707865;

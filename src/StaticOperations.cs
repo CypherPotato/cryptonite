@@ -7,10 +7,19 @@ using System.Security.Cryptography;
 
 namespace Cryptonite
 {
+    /// <summary>
+    /// Provides static, useful cryptographic functions.
+    /// </summary>
     public static partial class StaticOperations
     {
         private static Random StringGenerationRandom = new Random();
 
+        /// <summary>
+        /// Compares whether the two spans are identical, in a timing-safe comparison, which does not return immediately in case of divergence.
+        /// </summary>
+        /// <param name="a">The first span.</param>
+        /// <param name="b">The second span.</param>
+        /// <returns></returns>
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public static bool TimingSafeEqual(Span<byte> a, Span<byte> b)
         {
@@ -23,21 +32,22 @@ namespace Cryptonite
             return result;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Span<byte> Range(Span<byte> a, int index, int length)
-        {
-            return a[index..(length + index)];
-        }
-
-        public static Span<byte> PadZeros(Span<byte> arr, int length, bool padFromLeft = false)
+        /// <summary>
+        /// Creates a fixed-size array from the input span and pads the excess with zeros.
+        /// </summary>
+        /// <param name="arr">The input array.</param>
+        /// <param name="length">The new array size.</param>
+        /// <param name="padFromLeft">Indicates whether the array should be filled from the left (true) or right.</param>
+        public static byte[] PadZeros(Span<byte> arr, int length, bool padFromLeft = false)
         {
             int inputLength = arr.Length;
 
             if (inputLength > length) throw new InvalidOperationException("The input array length must be lower or equal than the padding length.");
             if (length < 0) throw new InvalidOperationException("Length must be non negative.");
-            if (inputLength == length) return arr;
+            if (inputLength == length) return arr.ToArray();
 
-            Span<byte> padObj = new Span<byte>(new byte[length]);
+            Span<byte> padObj = stackalloc byte[length];
+
             if (padFromLeft)
             {
                 Copy(arr, ref padObj, length - arr.Length);
@@ -47,9 +57,15 @@ namespace Cryptonite
                 Copy(arr, ref padObj, 0);
             }
 
-            return padObj;
+            return padObj.ToArray();
         }
 
+        /// <summary>
+        /// Copies data from A to B.
+        /// </summary>
+        /// <param name="from">The A span.</param>
+        /// <param name="to">The B span.</param>
+        /// <param name="index">The start index of the copy.</param>
         public static void Copy(Span<byte> from, ref Span<byte> to, int index)
         {
             for (int i = 0; i < from.Length; i++)
@@ -58,19 +74,30 @@ namespace Cryptonite
             }
         }
 
-        public static Span<byte> XorGate(Span<byte> a, Span<byte> b)
+        /// <summary>
+        /// Applies an XOR gate between two spans.
+        /// </summary>
+        /// <param name="from">The A span.</param>
+        /// <param name="to">The B span.</param>
+        public static byte[] XorGate(Span<byte> a, Span<byte> b)
         {
             if (a.Length != b.Length) throw new Exception("The arrays must be the same size.");
 
-            Span<byte> outputKey = new Span<byte>(new byte[a.Length]);
+            Span<byte> outputKey = stackalloc byte[a.Length];
+
             for (int i = 0; i < a.Length; i++)
             {
                 outputKey[i] = (byte)(a[i] ^ b[i]);
             }
 
-            return outputKey;
+            return outputKey.ToArray();
         }
 
+        /// <summary>
+        /// Applies an XOR gate between two spans modifying the original span.
+        /// </summary>
+        /// <param name="from">The A span.</param>
+        /// <param name="to">The B span.</param>
         public static void RefXorGate(ref Span<byte> a, Span<byte> b)
         {
             if (a.Length != b.Length) throw new Exception("The arrays must be the same size.");
@@ -80,18 +107,32 @@ namespace Cryptonite
             }
         }
 
+        /// <summary>
+        /// Fills an span with cryptographically strong bytes.
+        /// </summary>
+        /// <param name="buffer">The output span.</param>
         public static void RefRandomSecureBytes(ref Span<byte> buffer)
         {
             RandomNumberGenerator.Create().GetBytes(buffer);
         }
 
-        public static Span<byte> RandomSecureBytes(int length)
+        /// <summary>
+        /// Gets an array of cryptographically strong bytes.
+        /// </summary>
+        /// <param name="length">The size of the array.</param>
+        public static byte[] RandomSecureBytes(int length)
         {
             var bytes = new byte[length];
             RandomNumberGenerator.Create().GetBytes(bytes);
-            return new Span<byte>(bytes);
+            return bytes;
         }
 
+        /// <summary>
+        /// Generates an random string with the specified length.
+        /// </summary>
+        /// <param name="length">The string length.</param>
+        /// <param name="alphabet">Optional. The string which contains the letters which will be added to the final result.</param>
+        /// <returns></returns>
         public static string RandomString(int length, string alphabet = "abcdefghijklmnopqrstuvwxyz0123456789/;.,!@#$%")
         {
             return new string(alphabet.Select(c => alphabet[StringGenerationRandom.Next(alphabet.Length)]).Take(length).ToArray());

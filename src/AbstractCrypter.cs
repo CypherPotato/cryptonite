@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Cryptonite;
 
 /// <summary>
-/// Provides a base class for AutoCrypters.
+/// Provides a base class for auto-crypters.
 /// </summary>
 public abstract class AbstractCrypter
 {
@@ -77,7 +77,7 @@ public abstract class AbstractCrypter
         Span<byte> xorBytes = StaticOperations.XorGate(keyBytes, hashedData);
         return xorBytes;
     }
-
+    
     /// <summary>
     /// Transforms the information into a derivative of the same size as the private key and applies the
     /// private key to the encrypted information.
