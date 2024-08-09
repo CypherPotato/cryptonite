@@ -1,9 +1,4 @@
 ﻿using Cryptonite.ECDH.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Cryptonite.ECDH
 {
@@ -12,7 +7,7 @@ namespace Cryptonite.ECDH
     /// </summary>
     public readonly struct ECDHPublicKey
     {
-        internal readonly byte[] _keyBytes;
+        internal readonly ECDHKey _key;
 
         /// <summary>
         /// Creates an <see cref="ECDHPublicKey"/> from the specified <see cref="ECDHPrivateKey"/>.
@@ -20,7 +15,7 @@ namespace Cryptonite.ECDH
         /// <param name="privateKey">The ECDH private key.</param>
         public static ECDHPublicKey FromPrivateKey(in ECDHPrivateKey privateKey)
         {
-            var pubpk = ECDHAlgorithmService.GetPublicKey(privateKey._keyBytes);
+            var pubpk = ECDHAlgorithmService.GetPublicKey(privateKey.GetBytes());
             return new ECDHPublicKey(pubpk);
         }
 
@@ -30,29 +25,27 @@ namespace Cryptonite.ECDH
         /// <param name="publicKeyBytes">The array of bytes of the public key.</param>
         public ECDHPublicKey(byte[] publicKeyBytes)
         {
-            if (publicKeyBytes.Length != 32) throw new ArgumentException("Public key byte length should be exact 32 bytes-long.");
-            _keyBytes = publicKeyBytes;
+            _key = new ECDHKey(publicKeyBytes);
         }
 
         /// <summary>
         /// Creates an new intance of the <see cref="ECDHPublicKey"/> structure with the provided public key bytes.
         /// </summary>
         /// <param name="publicKeyBytes">The span of bytes of the public key.</param>
-        public ECDHPublicKey(ReadOnlyMemory<byte> publicKeyBytes)
+        public ECDHPublicKey(ReadOnlySpan<byte> publicKeyBytes)
         {
-            if (publicKeyBytes.Length != 32) throw new ArgumentException("Public key byte length should be exact 32 bytes-long.");
-            _keyBytes = publicKeyBytes.ToArray();
+            _key = new ECDHKey(publicKeyBytes);
         }
 
         /// <summary>
-        /// Gets an string representation of this <see cref="ECDHPrivateKey"/>.
+        /// Gets an string representation of this <see cref="ECDHPublicKey"/>.
         /// </summary>
         /// <returns>An hex string containing this private key bytes.</returns>
-        public override string ToString() => string.Join("", GetBytes().Select(b => b.ToString("x2")));
+        public override string ToString() => $"[ECDHPublicKey 0x{StaticOperations.ToHexString(GetBytes())}]";
 
         /// <summary>
         /// Gets the public key bytes.
         /// </summary>
-        public byte[] GetBytes() => _keyBytes.ToArray();
+        public byte[] GetBytes() => _key.GetBytes();
     }
 }

@@ -48,8 +48,8 @@ namespace Cryptonite.ECDH.Core
         {
             //Resolve SharedSecret Key using the Montgomery Elliptical Curve Operations...
             var sharedSecretKey = MontgomeryOperations.ScalarMultiplication(
-                n: privateKey._keyBytes,
-                p: peerPublicKey._keyBytes,
+                n: privateKey._key.GetBytes(),
+                p: peerPublicKey._key.GetBytes(),
                 qSize: SharedKeySizeInBytes);
 
             //hashes like the NaCl paper says instead i.e. HSalsa(x,0)

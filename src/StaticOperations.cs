@@ -1,9 +1,6 @@
-﻿using Cryptonite.ECDH;
-using System;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Cryptonite
 {
@@ -50,11 +47,11 @@ namespace Cryptonite
 
             if (padFromLeft)
             {
-                Copy(arr, ref padObj, length - arr.Length);
+                Copy(arr, padObj, length - arr.Length);
             }
             else
             {
-                Copy(arr, ref padObj, 0);
+                Copy(arr, padObj, 0);
             }
 
             return padObj.ToArray();
@@ -66,7 +63,7 @@ namespace Cryptonite
         /// <param name="from">The A span.</param>
         /// <param name="to">The B span.</param>
         /// <param name="index">The start index of the copy.</param>
-        public static void Copy(Span<byte> from, ref Span<byte> to, int index)
+        public static void Copy(Span<byte> from, Span<byte> to, int index)
         {
             for (int i = 0; i < from.Length; i++)
             {
@@ -98,7 +95,7 @@ namespace Cryptonite
         /// </summary>
         /// <param name="from">The A span.</param>
         /// <param name="to">The B span.</param>
-        public static void RefXorGate(ref Span<byte> a, Span<byte> b)
+        public static void RefXorGate(Span<byte> a, Span<byte> b)
         {
             if (a.Length != b.Length) throw new Exception("The arrays must be the same size.");
             for (int i = 0; i < a.Length; i++)
@@ -138,30 +135,41 @@ namespace Cryptonite
             return new string(alphabet.Select(c => alphabet[StringGenerationRandom.Next(alphabet.Length)]).Take(length).ToArray());
         }
 
-        public static Span<byte> Pbkdf2Derive(Span<byte> key, int length, PBKDF2Parameters parameters)
+        /// <summary>
+        /// Reads the input byte array into an hex string.
+        /// </summary>
+        /// <param name="bytes">The input byte array.</param>
+        public static string ToHexString(Span<byte> bytes)
         {
-            ArgumentNullException.ThrowIfNull(nameof(parameters.Salt));
+            StringBuilder sb = new StringBuilder(bytes.Length * 2);
 
-            return new Span<byte>(Rfc2898DeriveBytes.Pbkdf2(
-                key,
-                parameters.Salt,
-                parameters.Iterations,
-                parameters.HashAlgorithm,
-                length
-            ));
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                sb.Append(bytes[i].ToString("x2"));
+            }
+
+            return sb.ToString();
         }
-    }
 
-    public class PBKDF2Parameters
-    {
-        public byte[]? Salt { get; set; }
-        public int Iterations { get; set; }
-        public HashAlgorithmName HashAlgorithm { get; set; }
-
-        public PBKDF2Parameters()
+        /// <summary>
+        /// Reads the input hex string into an byte array.
+        /// </summary>
+        /// <param name="hexString">The input hex string.</param>
+        public static byte[] FromHexString(string hexString)
         {
-            this.HashAlgorithm = HashAlgorithmName.SHA256;
-            this.Iterations = 10000;
+            int GetHexVal(int val) => val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
+
+            if (hexString.Length % 2 == 1)
+                throw new Exception("The hex string cannot have an odd number of digits.");
+
+            byte[] arr = new byte[hexString.Length >> 1];
+
+            for (int i = 0; i < hexString.Length >> 1; ++i)
+            {
+                arr[i] = (byte)((GetHexVal(hexString[i << 1]) << 4) + (GetHexVal(hexString[(i << 1) + 1])));
+            }
+
+            return arr;
         }
     }
 }

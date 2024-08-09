@@ -12,7 +12,7 @@ namespace Cryptonite.ECDH
     /// </summary>
     public readonly struct ECDHSharedKey
     {
-        private readonly byte[] _keyBytes;
+        internal readonly ECDHKey _key;
 
         /// <summary>
         /// Creates an new intance of the <see cref="ECDHSharedKey"/> structure with the provided shared key bytes.
@@ -20,18 +20,16 @@ namespace Cryptonite.ECDH
         /// <param name="publicKeyBytes">The array of bytes of the public key.</param>
         public ECDHSharedKey(byte[] keyBytes)
         {
-            if (keyBytes.Length != 32) throw new ArgumentException("Shared key byte length should be exact 32 bytes-long.");
-            _keyBytes = keyBytes;
+            _key = new ECDHKey(keyBytes);
         }
 
         /// <summary>
         /// Creates an new intance of the <see cref="ECDHSharedKey"/> structure with the provided shared key bytes.
         /// </summary>
         /// <param name="publicKeyBytes">The span of bytes of the public key.</param>
-        public ECDHSharedKey(ReadOnlyMemory<byte> keyBytes)
+        public ECDHSharedKey(ReadOnlySpan<byte> keyBytes)
         {
-            if (keyBytes.Length != 32) throw new ArgumentException("Shared key byte length should be exact 32 bytes-long.");
-            _keyBytes = keyBytes.ToArray();
+            _key = new ECDHKey(keyBytes);
         }
 
         /// <summary>
@@ -48,11 +46,11 @@ namespace Cryptonite.ECDH
         /// <summary>
         /// Gets the shared key bytes.
         /// </summary>
-        public byte[] GetBytes() => _keyBytes;
+        public byte[] GetBytes() => _key.GetBytes();
 
         /// <summary>
         /// Gets an string representation of this <see cref="ECDHSharedKey"/>.
         /// </summary>
-        public override string ToString() => string.Join("", GetBytes().Select(b => b.ToString("x2")));
+        public override string ToString() => $"[ECDHSharedKey 0x{StaticOperations.ToHexString(GetBytes())}]";
     }
 }

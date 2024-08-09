@@ -7,7 +7,7 @@ namespace Cryptonite.ECDH
     /// </summary>
     public readonly struct ECDHPrivateKey
     {
-        internal readonly byte[] _keyBytes;
+        internal readonly ECDHKey _key;
 
         /// <summary>
         /// Creates an new, random ECDH private key.
@@ -24,8 +24,7 @@ namespace Cryptonite.ECDH
         /// <param name="privateKeyBytes">The span of bytes of the private key.</param>
         public ECDHPrivateKey(ReadOnlyMemory<byte> privateKeyBytes)
         {
-            if (privateKeyBytes.Length != ECDHAlgorithmService.PrivateKeySizeInBytes) throw new ArgumentException("Private key byte length should be exact 32 bytes-long.");
-            _keyBytes = privateKeyBytes.ToArray();
+            _key = new ECDHKey(privateKeyBytes.ToArray());
         }
 
         /// <summary>
@@ -34,14 +33,13 @@ namespace Cryptonite.ECDH
         /// <param name="privateKeyBytes">The array of bytes of the private key.</param>
         public ECDHPrivateKey(byte[] privateKeyBytes)
         {
-            if (privateKeyBytes.Length != ECDHAlgorithmService.PrivateKeySizeInBytes) throw new ArgumentException("Private key byte length should be exact 32 bytes-long.");
-            _keyBytes = privateKeyBytes;
+            _key = new ECDHKey(privateKeyBytes.ToArray());
         }
 
         /// <summary>
         /// Gets the private key bytes.
         /// </summary>
-        public byte[] GetBytes() => _keyBytes.ToArray();
+        public byte[] GetBytes() => _key.GetBytes();
 
         /// <summary>
         /// Gets the <see cref="ECDHPublicKey"/> associated with this private key.
@@ -57,13 +55,13 @@ namespace Cryptonite.ECDH
         /// <param name="peerPublicKey">The other party public key.</param>
         public ECDHSharedKey GetSharedKey(ECDHPublicKey peerPublicKey)
         {
-            return new ECDHSharedKey(this, peerPublicKey);
+            return ECDHSharedKey.Create(this, peerPublicKey);
         }
 
         /// <summary>
         /// Gets an string representation of this <see cref="ECDHPrivateKey"/>.
         /// </summary>
         /// <returns>An hex string containing this private key bytes.</returns>
-        public override string ToString() => string.Join("", GetBytes().Select(b => b.ToString("x2")));
+        public override string ToString() => $"[ECDHPrivateKey]";
     }
 }
